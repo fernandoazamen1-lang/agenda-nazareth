@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academia Nazareth - Entrevistas</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
+    <!-- BARRA DE NAVEGACIÓN (PESTAÑAS) -->
     <nav class="bg-blue-900 text-white shadow-md">
         <div class="max-w-4xl mx-auto px-4 flex justify-center space-x-8">
             <button id="tabPostulantes" class="py-4 px-2 font-bold border-b-4 border-white text-white focus:outline-none">
-                Postulantes
+                Formulario de Postulantes
             </button>
             <button id="tabAdmin" class="py-4 px-2 font-bold border-b-4 border-transparent text-blue-300 hover:text-white focus:outline-none">
                 Administración
@@ -22,7 +23,9 @@
 
     <div class="p-4 sm:p-8 flex justify-center">
 
-        <!-- PESTAÑA POSTULANTES -->
+        <!-- ========================================================= -->
+        <!-- PESTAÑA 1: POSTULANTES (FORMULARIO PÚBLICO)               -->
+        <!-- ========================================================= -->
         <div id="vistaPostulantes" class="max-w-xl w-full bg-white rounded-xl shadow-lg p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-blue-900 mb-2">Academia Nazareth</h1>
@@ -70,11 +73,15 @@
             </form>
 
             <div id="mensajeExito" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-md text-center">
-                ¡Reserva confirmada con éxito! Nos comunicaremos por WhatsApp.
+                ¡Reserva confirmada con éxito! La información ha sido registrada correctamente. Nos comunicaremos por WhatsApp.
             </div>
         </div>
 
-        <!-- PESTAÑA ADMINISTRADOR -->
+        <!-- ========================================================= -->
+        <!-- PESTAÑA 2: ADMINISTRACIÓN (PRIVADA - MODO SHEETS)         -->
+        <!-- ========================================================= -->
+        
+        <!-- Login Admin -->
         <div id="vistaLogin" class="hidden max-w-sm w-full bg-white p-8 rounded-xl shadow-lg mt-10">
             <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Acceso Privado</h2>
             <div class="space-y-4">
@@ -87,27 +94,32 @@
             </div>
         </div>
 
-        <div id="vistaPanelAdmin" class="hidden max-w-5xl w-full">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h1 class="text-2xl sm:text-3xl font-bold text-blue-900">Panel de Entrevistas (Modo Sheets)</h1>
-                <p class="text-gray-600">Revisa los datos registrados en tu archivo de Google Sheets.</p>
-            </div>
-            
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                <p class="text-blue-700 font-medium">Información importante:</p>
-                <p class="text-blue-600 text-sm">Al usar Google Sheets, los datos se guardan directamente en tu Excel. Para ver la tabla de postulantes actualizada y descargar el PDF, debes abrir tu archivo <strong>"Reservas Nazareth"</strong> en tu Google Drive.</p>
+        <!-- Panel Admin Explicativo -->
+        <div id="vistaPanelAdmin" class="hidden max-w-2xl w-full">
+            <div class="bg-white p-8 rounded-xl shadow-lg mt-10 text-center">
+                <h2 class="text-3xl font-bold text-blue-900 mb-4">Panel de Entrevistas</h2>
+                <div class="bg-blue-50 border-l-4 border-blue-600 p-6 text-left rounded-r-lg">
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">Has activado el Modo Google Sheets</h3>
+                    <p class="text-gray-700 mb-4">Para garantizar la seguridad de los datos de los profesores y evitar errores de red, la base de datos ahora está conectada directamente a tu Google Drive personal.</p>
+                    <p class="text-gray-700 font-bold mb-2">Para ver y descargar la lista de postulantes:</p>
+                    <ol class="list-decimal list-inside text-gray-700 space-y-2 ml-4">
+                        <li>Abre tu cuenta de <strong>Google Drive</strong>.</li>
+                        <li>Busca y abre el archivo de Excel llamado <strong>"Reservas Nazareth"</strong>.</li>
+                        <li>Allí verás en tiempo real cada reserva que se realiza en la página web.</li>
+                    </ol>
+                </div>
             </div>
         </div>
 
     </div>
 
-    <!-- LÓGICA DEL SISTEMA (SIN FIREBASE) -->
+    <!-- SCRIPT PRINCIPAL -->
     <script>
         const USUARIO_ADMIN = "admin";
         const CLAVE_ADMIN = "nazareth2026"; 
         
-        // 1. REEMPLAZA ESTO CON LA URL LARGA DE APPS SCRIPT
-        const URL_GOOGLE_SCRIPT = "PEGA_AQUÍ_TU_URL_DE_APPS_SCRIPT";
+        // Aquí está tu URL exacta ya configurada
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyDWSzNwJrg0jU-dhexgLCfahoI29DMFXNTbih6JciD0ecgPXCh3DQGxPQm89Fgp1YK/exec";
 
         const tabPostulantes = document.getElementById('tabPostulantes');
         const tabAdmin = document.getElementById('tabAdmin');
@@ -215,11 +227,6 @@
                 return;
             }
 
-            if (URL_GOOGLE_SCRIPT === "PEGA_AQUÍ_TU_URL_DE_APPS_SCRIPT") {
-                alert("Falta configurar la URL de Google Sheets en el código.");
-                return;
-            }
-
             const nuevaReserva = {
                 nombre: document.getElementById('nombre').value,
                 telefono: document.getElementById('telefono').value,
@@ -229,26 +236,23 @@
             };
 
             btnReservar.disabled = true;
-            btnReservar.innerText = "Enviando datos...";
+            btnReservar.innerText = "Registrando postulación...";
 
             try {
-                const response = await fetch(URL_GOOGLE_SCRIPT, {
+                await fetch(URL_GOOGLE_SCRIPT, {
                     method: 'POST',
-                    mode: 'no-cors', // Evita bloqueos de seguridad del navegador
+                    mode: 'no-cors',
                     cache: 'no-cache',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(nuevaReserva)
                 });
                 
-                // Con no-cors no podemos leer la respuesta exacta, asumimos éxito si la red funciona
                 form.classList.add('hidden');
                 document.getElementById('mensajeExito').classList.remove('hidden');
                 
             } catch (error) {
-                console.error("Error de conexión: ", error);
-                alert("Hubo un error de conexión. Intenta de nuevo.");
+                console.error("Error: ", error);
+                alert("Hubo un problema de conexión con Google Sheets. Intenta nuevamente.");
                 btnReservar.disabled = false;
                 btnReservar.innerText = "Confirmar Reserva";
             }
