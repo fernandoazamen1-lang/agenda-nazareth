@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Academia Nazareth - Entrevistas</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-    <!-- BARRA DE NAVEGACIÓN (PESTAÑAS) -->
     <nav class="bg-blue-900 text-white shadow-md">
         <div class="max-w-4xl mx-auto px-4 flex justify-center space-x-8">
             <button id="tabPostulantes" class="py-4 px-2 font-bold border-b-4 border-white text-white focus:outline-none">
@@ -23,9 +21,7 @@
 
     <div class="p-4 sm:p-8 flex justify-center">
 
-        <!-- ========================================================= -->
-        <!-- PESTAÑA 1: POSTULANTES (FORMULARIO PÚBLICO)               -->
-        <!-- ========================================================= -->
+        <!-- PESTAÑA POSTULANTES -->
         <div id="vistaPostulantes" class="max-w-xl w-full bg-white rounded-xl shadow-lg p-8">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-blue-900 mb-2">Academia Nazareth</h1>
@@ -60,7 +56,10 @@
                 </div>
 
                 <div id="seccionHoras" class="hidden">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">2. Selecciona la Hora</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2 flex justify-between items-center">
+                        <span>2. Selecciona la Hora</span>
+                        <span id="indicadorCarga" class="text-xs text-blue-600 font-bold hidden">Verificando disponibilidad...</span>
+                    </label>
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="contenedorHoras"></div>
                 </div>
 
@@ -73,15 +72,11 @@
             </form>
 
             <div id="mensajeExito" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-md text-center">
-                ¡Reserva confirmada con éxito! La información ha sido registrada correctamente. Nos comunicaremos por WhatsApp.
+                ¡Reserva confirmada con éxito! Nos comunicaremos por WhatsApp.
             </div>
         </div>
 
-        <!-- ========================================================= -->
-        <!-- PESTAÑA 2: ADMINISTRACIÓN (PRIVADA - MODO SHEETS)         -->
-        <!-- ========================================================= -->
-        
-        <!-- Login Admin -->
+        <!-- PESTAÑA ADMINISTRADOR -->
         <div id="vistaLogin" class="hidden max-w-sm w-full bg-white p-8 rounded-xl shadow-lg mt-10">
             <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Acceso Privado</h2>
             <div class="space-y-4">
@@ -94,23 +89,19 @@
             </div>
         </div>
 
-        <!-- Panel Admin Explicativo -->
         <div id="vistaPanelAdmin" class="hidden max-w-2xl w-full">
             <div class="bg-white p-8 rounded-xl shadow-lg mt-10 text-center">
                 <h2 class="text-3xl font-bold text-blue-900 mb-4">Panel de Entrevistas</h2>
                 <div class="bg-blue-50 border-l-4 border-blue-600 p-6 text-left rounded-r-lg">
-                    <h3 class="text-xl font-bold text-blue-800 mb-2">Has activado el Modo Google Sheets</h3>
-                    <p class="text-gray-700 mb-4">Para garantizar la seguridad de los datos de los profesores y evitar errores de red, la base de datos ahora está conectada directamente a tu Google Drive personal.</p>
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">Base conectada a Google Sheets</h3>
                     <p class="text-gray-700 font-bold mb-2">Para ver y descargar la lista de postulantes:</p>
                     <ol class="list-decimal list-inside text-gray-700 space-y-2 ml-4">
                         <li>Abre tu cuenta de <strong>Google Drive</strong>.</li>
-                        <li>Busca y abre el archivo de Excel llamado <strong>"Reservas Nazareth"</strong>.</li>
-                        <li>Allí verás en tiempo real cada reserva que se realiza en la página web.</li>
+                        <li>Abre el archivo de Excel llamado <strong>"Reservas Nazareth"</strong>.</li>
                     </ol>
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- SCRIPT PRINCIPAL -->
@@ -118,8 +109,10 @@
         const USUARIO_ADMIN = "admin";
         const CLAVE_ADMIN = "nazareth2026"; 
         
-        // Aquí está tu URL exacta ya configurada
-        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbyDWSzNwJrg0jU-dhexgLCfahoI29DMFXNTbih6JciD0ecgPXCh3DQGxPQm89Fgp1YK/exec";
+        // AQUÍ ESTÁ TU NUEVA URL CONFIGURADA
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwwBxYyhx8mDygEtrLo8HzOI9r0qNsL6-Pxfv_-T7ySKsVO9u2lUPxL1_IfGwW3w39C/exec";
+
+        let reservasOcupadas = []; 
 
         const tabPostulantes = document.getElementById('tabPostulantes');
         const tabAdmin = document.getElementById('tabAdmin');
@@ -150,7 +143,6 @@
         document.getElementById('btnIngresar').addEventListener('click', () => {
             const usr = document.getElementById('usuarioInput').value;
             const pass = document.getElementById('claveInput').value;
-
             if(usr === USUARIO_ADMIN && pass === CLAVE_ADMIN) {
                 adminAutenticado = true;
                 vistaLogin.classList.add('hidden');
@@ -174,6 +166,29 @@
         const inputFecha = document.getElementById('fechaSeleccionada');
         const inputHora = document.getElementById('horaSeleccionada');
         const btnReservar = document.getElementById('btnReservar');
+        const indicadorCarga = document.getElementById('indicadorCarga');
+
+        async function cargarHorasOcupadas() {
+            try {
+                indicadorCarga.classList.remove('hidden');
+                const respuesta = await fetch(URL_GOOGLE_SCRIPT);
+                const datos = await respuesta.json();
+                
+                if(Array.isArray(datos)) {
+                    reservasOcupadas = datos;
+                }
+                indicadorCarga.classList.add('hidden');
+                
+                if(inputFecha.value) {
+                    renderizarHoras(inputFecha.value);
+                }
+            } catch (error) {
+                console.error("Error leyendo ocupados", error);
+                indicadorCarga.classList.add('hidden');
+            }
+        }
+
+        cargarHorasOcupadas();
 
         fechasDisponibles.forEach(fecha => {
             const btn = document.createElement('button');
@@ -193,6 +208,7 @@
             });
             botonClickeado.classList.remove('border-gray-300');
             botonClickeado.classList.add('bg-blue-50', 'border-blue-500', 'text-blue-700');
+            
             renderizarHoras(fechaId);
             seccionHoras.classList.remove('hidden');
         }
@@ -200,11 +216,22 @@
         function renderizarHoras(fechaId) {
             contHoras.innerHTML = '';
             horasDisponibles.forEach(hora => {
+                
+                const estaTomada = reservasOcupadas.some(reserva => reserva.fecha === fechaId && reserva.hora === hora);
+                
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'p-2 border rounded-md text-sm font-medium border-gray-300 hover:border-blue-500 hover:text-blue-600 focus:outline-none transition-colors';
-                btn.innerText = hora;
-                btn.onclick = () => seleccionarHora(hora, btn);
+                
+                if (estaTomada) {
+                    btn.className = 'p-2 border rounded-md text-sm font-medium bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed';
+                    btn.innerText = 'Ocupado';
+                    btn.disabled = true;
+                } else {
+                    btn.className = 'p-2 border rounded-md text-sm font-medium border-gray-300 hover:border-blue-500 hover:text-blue-600 focus:outline-none transition-colors';
+                    btn.innerText = hora;
+                    btn.onclick = () => seleccionarHora(hora, btn);
+                }
+                
                 contHoras.appendChild(btn);
             });
         }
@@ -212,8 +239,10 @@
         function seleccionarHora(hora, botonClickeado) {
             inputHora.value = hora;
             Array.from(contHoras.children).forEach(b => {
-                b.classList.remove('bg-blue-900', 'text-white');
-                b.classList.add('border-gray-300');
+                if(!b.disabled) {
+                    b.classList.remove('bg-blue-900', 'text-white');
+                    b.classList.add('border-gray-300');
+                }
             });
             botonClickeado.classList.remove('border-gray-300');
             botonClickeado.classList.add('bg-blue-900', 'text-white');
@@ -221,7 +250,6 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             if (!inputFecha.value || !inputHora.value) {
                 alert('Por favor selecciona una fecha y una hora.');
                 return;
@@ -251,8 +279,7 @@
                 document.getElementById('mensajeExito').classList.remove('hidden');
                 
             } catch (error) {
-                console.error("Error: ", error);
-                alert("Hubo un problema de conexión con Google Sheets. Intenta nuevamente.");
+                alert("Hubo un problema de conexión. Intenta nuevamente.");
                 btnReservar.disabled = false;
                 btnReservar.innerText = "Confirmar Reserva";
             }
