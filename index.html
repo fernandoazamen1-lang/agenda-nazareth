@@ -52,7 +52,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">1. Selecciona la Fecha</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" id="contenedorFechas"></div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="contenedorFechas"></div>
                 </div>
 
                 <div id="seccionHoras" class="hidden">
@@ -109,7 +109,7 @@
         const USUARIO_ADMIN = "admin";
         const CLAVE_ADMIN = "nazareth2026"; 
         
-        // AQUÍ ESTÁ TU NUEVA URL CONFIGURADA
+        // TU URL EXACTA
         const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbwwBxYyhx8mDygEtrLo8HzOI9r0qNsL6-Pxfv_-T7ySKsVO9u2lUPxL1_IfGwW3w39C/exec";
 
         let reservasOcupadas = []; 
@@ -152,10 +152,12 @@
             }
         });
 
+        // NUEVA LISTA DE FECHAS (INCLUYENDO SÁBADO 19 DIC)
         const fechasDisponibles = [
             { id: '2026-11-21', texto: 'Sáb 21 Nov' },
             { id: '2026-11-28', texto: 'Sáb 28 Nov' },
-            { id: '2026-12-12', texto: 'Sáb 12 Dic' }
+            { id: '2026-12-12', texto: 'Sáb 12 Dic' },
+            { id: '2026-12-19', texto: 'Sáb 19 Dic' }
         ];
         const horasDisponibles = ['15:00', '15:30', '16:00', '16:30', '17:00', '17:30'];
 
