@@ -89,65 +89,25 @@
 
         <div id="vistaPanelAdmin" class="hidden max-w-5xl w-full">
             <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h1 class="text-2xl sm:text-3xl font-bold text-blue-900">Panel de Entrevistas</h1>
-                <button id="btnDescargarPDF" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md flex items-center shadow">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Descargar PDF
-                </button>
+                <h1 class="text-2xl sm:text-3xl font-bold text-blue-900">Panel de Entrevistas (Modo Sheets)</h1>
+                <p class="text-gray-600">Revisa los datos registrados en tu archivo de Google Sheets.</p>
             </div>
-
-            <div id="contenidoPDF" class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-                <div class="text-center mb-6 border-b pb-4">
-                    <h2 class="text-2xl font-bold uppercase text-gray-800">Reporte de Postulantes</h2>
-                    <p class="text-gray-500">Academia Nazareth - Proceso de Selección</p>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto border-collapse border border-gray-300">
-                        <thead class="bg-blue-900 text-white">
-                            <tr>
-                                <th class="border border-gray-300 px-4 py-3 text-left">Fecha y Hora</th>
-                                <th class="border border-gray-300 px-4 py-3 text-left">Postulante</th>
-                                <th class="border border-gray-300 px-4 py-3 text-left">Especialidad</th>
-                                <th class="border border-gray-300 px-4 py-3 text-left">Celular</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaCuerpo" class="text-gray-700">
-                            <!-- Datos generados por JS -->
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-4 text-sm text-gray-500 text-right" id="fechaReporte"></div>
+            
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <p class="text-blue-700 font-medium">Información importante:</p>
+                <p class="text-blue-600 text-sm">Al usar Google Sheets, los datos se guardan directamente en tu Excel. Para ver la tabla de postulantes actualizada y descargar el PDF, debes abrir tu archivo <strong>"Reservas Nazareth"</strong> en tu Google Drive.</p>
             </div>
         </div>
 
     </div>
 
-    <!-- LÓGICA DEL SISTEMA -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
+    <!-- LÓGICA DEL SISTEMA (SIN FIREBASE) -->
+    <script>
         const USUARIO_ADMIN = "admin";
         const CLAVE_ADMIN = "nazareth2026"; 
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjiyyNhmbqR0-O-OKY6JH5lDb67b9T0fk",
-            authDomain: "entrevista-7be94.firebaseapp.com",
-            projectId: "entrevista-7be94",
-            storageBucket: "entrevista-7be94.firebasestorage.app",
-            messagingSenderId: "423282719763",
-            appId: "1:423282719763:web:d5103d1e2495b98c4a93e6",
-            measurementId: "G-00CN5DJ3CQ"
-        };
-
-        let db;
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-        } catch (e) {
-            console.log("Error de conexión");
-        }
+        
+        // 1. REEMPLAZA ESTO CON LA URL LARGA DE APPS SCRIPT
+        const URL_GOOGLE_SCRIPT = "PEGA_AQUÍ_TU_URL_DE_APPS_SCRIPT";
 
         const tabPostulantes = document.getElementById('tabPostulantes');
         const tabAdmin = document.getElementById('tabAdmin');
@@ -194,7 +154,6 @@
             { id: '2026-12-12', texto: 'Sáb 12 Dic' }
         ];
         const horasDisponibles = ['15:00', '15:30', '16:00', '16:30', '17:00', '17:30'];
-        let reservasCompletas = [];
 
         const form = document.getElementById('reservaForm');
         const contFechas = document.getElementById('contenedorFechas');
@@ -203,7 +162,6 @@
         const inputFecha = document.getElementById('fechaSeleccionada');
         const inputHora = document.getElementById('horaSeleccionada');
         const btnReservar = document.getElementById('btnReservar');
-        const tablaCuerpo = document.getElementById('tablaCuerpo');
 
         fechasDisponibles.forEach(fecha => {
             const btn = document.createElement('button');
@@ -229,21 +187,12 @@
 
         function renderizarHoras(fechaId) {
             contHoras.innerHTML = '';
-            const ocupadasIDs = reservasCompletas.map(r => r.idUnico);
-            
             horasDisponibles.forEach(hora => {
-                const idReserva = `${fechaId}_${hora}`;
-                const estaOcupada = ocupadasIDs.includes(idReserva);
-                
                 const btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = `p-2 border rounded-md text-sm font-medium focus:outline-none transition-colors ${estaOcupada ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200' : 'border-gray-300 hover:border-blue-500 hover:text-blue-600'}`;
-                btn.innerText = estaOcupada ? 'Ocupado' : hora;
-                btn.disabled = estaOcupada;
-                
-                if (!estaOcupada) {
-                    btn.onclick = () => seleccionarHora(hora, btn);
-                }
+                btn.className = 'p-2 border rounded-md text-sm font-medium border-gray-300 hover:border-blue-500 hover:text-blue-600 focus:outline-none transition-colors';
+                btn.innerText = hora;
+                btn.onclick = () => seleccionarHora(hora, btn);
                 contHoras.appendChild(btn);
             });
         }
@@ -251,50 +200,11 @@
         function seleccionarHora(hora, botonClickeado) {
             inputHora.value = hora;
             Array.from(contHoras.children).forEach(b => {
-                if(!b.disabled) {
-                    b.classList.remove('bg-blue-900', 'text-white');
-                    b.classList.add('border-gray-300');
-                }
+                b.classList.remove('bg-blue-900', 'text-white');
+                b.classList.add('border-gray-300');
             });
             botonClickeado.classList.remove('border-gray-300');
             botonClickeado.classList.add('bg-blue-900', 'text-white');
-        }
-
-        if(db) {
-            onSnapshot(collection(db, "reservas"), (snapshot) => {
-                reservasCompletas = snapshot.docs.map(doc => doc.data());
-                if (inputFecha.value) renderizarHoras(inputFecha.value); 
-                actualizarTablaAdmin();
-            });
-        }
-
-        function actualizarTablaAdmin() {
-            tablaCuerpo.innerHTML = '';
-            let reservasOrdenadas = [...reservasCompletas].sort((a, b) => a.idUnico.localeCompare(b.idUnico));
-            
-            if(reservasOrdenadas.length === 0) {
-                tablaCuerpo.innerHTML = `<tr><td colspan="4" class="text-center py-4">Aún no hay postulantes registrados.</td></tr>`;
-                return;
-            }
-
-            reservasOrdenadas.forEach(res => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-50";
-                tr.innerHTML = `
-                    <td class="border border-gray-300 px-4 py-2 font-medium whitespace-nowrap">${res.fecha} | ${res.hora}</td>
-                    <td class="border border-gray-300 px-4 py-2 uppercase">${res.nombre}</td>
-                    <td class="border border-gray-300 px-4 py-2">${res.especialidad}</td>
-                    <td class="border border-gray-300 px-4 py-2">
-                        <a href="https://wa.me/51${res.telefono.replace(/\s+/g, '')}" target="_blank" class="text-blue-600 hover:underline">
-                            ${res.telefono}
-                        </a>
-                    </td>
-                `;
-                tablaCuerpo.appendChild(tr);
-            });
-
-            const hoy = new Date();
-            document.getElementById('fechaReporte').innerText = "Reporte generado el: " + hoy.toLocaleDateString() + " " + hoy.toLocaleTimeString();
         }
 
         form.addEventListener('submit', async (e) => {
@@ -305,35 +215,43 @@
                 return;
             }
 
+            if (URL_GOOGLE_SCRIPT === "PEGA_AQUÍ_TU_URL_DE_APPS_SCRIPT") {
+                alert("Falta configurar la URL de Google Sheets en el código.");
+                return;
+            }
+
             const nuevaReserva = {
                 nombre: document.getElementById('nombre').value,
                 telefono: document.getElementById('telefono').value,
                 especialidad: document.getElementById('especialidad').value,
                 fecha: inputFecha.value,
-                hora: inputHora.value,
-                idUnico: `${inputFecha.value}_${inputHora.value}`, 
-                timestamp: new Date()
+                hora: inputHora.value
             };
 
             btnReservar.disabled = true;
-            btnReservar.innerText = "Guardando...";
+            btnReservar.innerText = "Enviando datos...";
 
             try {
-                await addDoc(collection(db, "reservas"), nuevaReserva);
+                const response = await fetch(URL_GOOGLE_SCRIPT, {
+                    method: 'POST',
+                    mode: 'no-cors', // Evita bloqueos de seguridad del navegador
+                    cache: 'no-cache',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(nuevaReserva)
+                });
+                
+                // Con no-cors no podemos leer la respuesta exacta, asumimos éxito si la red funciona
                 form.classList.add('hidden');
                 document.getElementById('mensajeExito').classList.remove('hidden');
+                
             } catch (error) {
-                console.error("Error al guardar: ", error);
-                alert("Ocurrió un error. Intenta de nuevo.");
+                console.error("Error de conexión: ", error);
+                alert("Hubo un error de conexión. Intenta de nuevo.");
                 btnReservar.disabled = false;
                 btnReservar.innerText = "Confirmar Reserva";
             }
-        });
-
-        document.getElementById('btnDescargarPDF').addEventListener('click', () => {
-            const elemento = document.getElementById('contenidoPDF');
-            const opciones = { margin: 10, filename: 'Reporte_Postulantes_Nazareth.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opciones).from(elemento).save();
         });
     </script>
 </body>
